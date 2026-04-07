@@ -8,7 +8,7 @@ import (
 )
 
 type Config struct {
-	appPort string
+	AppPort string
 	DBUrl   string
 }
 
@@ -19,8 +19,13 @@ func LoadConfig() *Config {
 		log.Println("[Error] No Env Found!")
 	}
 
+	AppPort := os.Getenv("APP_PORT")
+	if AppPort == "" {
+		AppPort = "3000" // default port kalau kosong
+	}
+
 	return &Config{
-		appPort: os.Getenv("APP_PORT"),
+		AppPort: os.Getenv("APP_PORT"),
 		DBUrl:   os.Getenv("DB_URL"),
 	}
 }

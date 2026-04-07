@@ -14,17 +14,18 @@ import (
 )
 
 func main() {
-	app := fiber.New()
-
-	routes.SetupRoutes(app)
 
 	config := config.LoadConfig()
 
 	db := database.Connect(config.DBUrl)
+	defer db.Close(context.Background())
 
 	log.Println("[Running] Migrating Databases")
 	migrations.RunMigration()
-	defer db.Close(context.Background())
 
-	log.Fatal(app.Listen(":3000"))
+	app := fiber.New()
+
+	routes.SetupRoutes(app, db)
+
+	log.Fatal(app.Listen(":" + config.AppPort))
 }
