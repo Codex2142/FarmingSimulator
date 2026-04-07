@@ -4,6 +4,7 @@ import (
 	"context"
 	"log"
 
+	"farming/migrations"
 	"farming/pkg/database"
 	"farming/routes"
 
@@ -20,6 +21,9 @@ func main() {
 	config := config.LoadConfig()
 
 	db := database.Connect(config.DBUrl)
+
+	log.Println("[Running] Migrating Databases")
+	migrations.RunMigration()
 	defer db.Close(context.Background())
 
 	log.Fatal(app.Listen(":3000"))
