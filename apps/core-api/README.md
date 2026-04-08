@@ -29,3 +29,16 @@ apps/core-api/
 ├── go.mod
 └── go.sum
 ```
+
+
+# Alur Pengerjaan sistem
+### 1. Migration
+### 2. Model
+### 3. DTO
+### 4. Repo
+### 5. Use Case
+### 6. Handler
+### 7. Router
+
+
+

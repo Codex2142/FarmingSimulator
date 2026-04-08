@@ -16,7 +16,7 @@ func LoadConfig() *Config {
 	err := godotenv.Load()
 
 	if err != nil {
-		log.Println("[Error] No Env Found!")
+		log.Println("[Error] No Env Found: ", err)
 	}
 
 	AppPort := os.Getenv("APP_PORT")

@@ -12,27 +12,35 @@ import (
 	_ "github.com/lib/pq"
 )
 
+// ====================================================================
+// RunMigration bertugas melakukan migrasi database PostgreSQL
+// Termasuk reset schema dan menjalankan semua migration files
 func RunMigration() {
 	dbURL := os.Getenv("DB_URL")
 
-	// Connect to DB directly
+	// sql.Open membuka koneksi database standar Go (database/sql)
+	// driver "postgres" digunakan untuk PostgreSQL
 	db, err := sql.Open("postgres", dbURL)
 	if err != nil {
 		log.Fatal("[Error DB]: ", err)
 	}
+
+	// defer memastikan koneksi db akan ditutup saat fungsi selesai
 	defer db.Close()
 
-	// Drop & recreate schema public
+	// ExecContext menjalankan query SQL langsung ke database
 	_, err = db.ExecContext(context.Background(), `
 		DROP SCHEMA public CASCADE;
 		CREATE SCHEMA public;
 	`)
+
 	if err != nil {
 		log.Fatal("[Error Drop Schema]: ", err)
 	}
 
 	log.Println("[Migration] Schema reset. Running migrations...")
 
+	// Menjalankan file migrations
 	migrationsPath := "file://migrations"
 	m, err := migrate.New(
 		migrationsPath,
@@ -42,9 +50,13 @@ func RunMigration() {
 		log.Fatal("[Error Migrate]: ", err)
 	}
 
+	// Menjalankan semua migration ke atas (Up)
 	if err := m.Up(); err != nil && err.Error() != "no change" {
+
+		// Jika ada error selain "no change", hentikan program
 		log.Fatal("[Error Migrate Up]: ", err)
 	}
 
+	// Jika sukses
 	log.Println("[Migration] Fresh Success")
 }
