@@ -17,13 +17,15 @@ type UserUsecase interface {
 	CreateUser(ctx context.Context, req dto.CreateUserRequest) (dto.UserResponse, error)
 
 	// Mengambil user berdasarkan ID
-	GetUser(ctx context.Context, id int) (dto.UserResponse, error)
+	GetUserById(ctx context.Context, id int) (dto.UserResponse, error)
 
 	// Update Users
 	UpdateUser(ctx context.Context, id int, req dto.UpdateUserRequest) (dto.UserResponse, error)
 
 	// delete User
 	DeleteUser(ctx context.Context, id int) error
+
+	GetAllUsers(ctx context.Context) ([]dto.UserResponse, error)
 }
 
 // ====================================================================
@@ -55,7 +57,7 @@ func (u *userUsecase) CreateUser(ctx context.Context, req dto.CreateUserRequest)
 	}
 
 	// Memanggil repository untuk menyimpan user ke database
-	createdUser, err := u.userRepo.Create(ctx, user)
+	createdUser, err := u.userRepo.CreateUser(ctx, user)
 	if err != nil {
 
 		// Jika gagal, kembalikan error
@@ -72,10 +74,10 @@ func (u *userUsecase) CreateUser(ctx context.Context, req dto.CreateUserRequest)
 
 // ====================================================================
 // Implementasi GetUser
-func (u *userUsecase) GetUser(ctx context.Context, id int) (dto.UserResponse, error) {
+func (u *userUsecase) GetUserById(ctx context.Context, id int) (dto.UserResponse, error) {
 
 	// Memanggil repository untuk mengambil user dari database
-	user, err := u.userRepo.GetbyID(ctx, id)
+	user, err := u.userRepo.GetUserById(ctx, id)
 	if err != nil {
 		return dto.UserResponse{}, err
 	}
@@ -92,20 +94,14 @@ func (u *userUsecase) GetUser(ctx context.Context, id int) (dto.UserResponse, er
 // Memperbarui User
 func (u *userUsecase) UpdateUser(ctx context.Context, id int, req dto.UpdateUserRequest) (dto.UserResponse, error) {
 
-	hashedPassword, err := utils.HashPassword(req.Password)
-	if err != nil {
-		return dto.UserResponse{}, err
-	}
-
 	// Membuat struct berdasarkan nilai dari request
 	user := model.User{
-		Name:     req.Name,
-		Phone:    req.Phone,
-		Password: hashedPassword,
+		Name:  req.Name,
+		Phone: req.Phone,
 	}
 
 	// Memanggil repository untuk mengambil user dari database
-	updatedUser, err := u.userRepo.Update(ctx, user, id)
+	updatedUser, err := u.userRepo.UpdateUser(ctx, user, id)
 
 	if err != nil {
 		return dto.UserResponse{}, err
@@ -121,6 +117,24 @@ func (u *userUsecase) UpdateUser(ctx context.Context, id int, req dto.UpdateUser
 // ====================================================================
 // Menghapus User
 func (u *userUsecase) DeleteUser(ctx context.Context, id int) error {
-	_, err := u.userRepo.Delete(ctx, id)
+	_, err := u.userRepo.DeleteUser(ctx, id)
 	return err
+}
+
+func (u *userUsecase) GetAllUsers(ctx context.Context) ([]dto.UserResponse, error) {
+	users, err := u.userRepo.GetAllUsers(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	var result []dto.UserResponse
+	for _, user := range users {
+		result = append(result, dto.UserResponse{
+			ID:    user.ID,
+			Name:  user.Name,
+			Phone: user.Phone,
+		})
+	}
+
+	return result, nil
 }

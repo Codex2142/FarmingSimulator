@@ -5,9 +5,9 @@ package dto
 // ====================================================================
 // Struktur ini digunakan untuk menerima data dari client ketika membuat user
 type CreateUserRequest struct {
-	Name     string `json:"name" validate:"required,string"`
+	Name     string `json:"name" validate:"required"`
 	Phone    string `json:"phone" validate:"required"`
-	Password string `json:"password" validate:"required,min:8"`
+	Password string `json:"password" validate:"required,min=8"`
 }
 
 // ====================================================================
@@ -21,14 +21,13 @@ type UserResponse struct {
 // ====================================================================
 // Struktur ini untuk update data tertentu (PATCH)
 type UpdateUserRequest struct {
-	Name     string `json:"name" validate:"required"`
-	Phone    string `json:"phone" validate:"required"`
-	Password string `json:"password" validate:"required,min:8"`
+	Name  string `json:"name" validate:"required"`
+	Phone string `json:"phone" validate:"required"`
 }
 
 // ====================================================================
-// // Struktur ini digunakan untuk menampilkan semua user (bisa Filter)
-// type showAllUser struct {
+// Struktur ini digunakan untuk menampilkan semua user (bisa Filter)
+// type showAllUsers struct {
 // 	Users []UserResponse `json:"users"`
 // 	Total int            `json:"total"`
 // }
