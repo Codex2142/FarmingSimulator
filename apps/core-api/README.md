@@ -40,5 +40,7 @@ apps/core-api/
 ### 6. Handler
 ### 7. Router
 
-
-
+# Swagger
+```sh
+C:\Users\sadat\go\bin\swag init -g cmd/server/main.go
+```

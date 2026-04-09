@@ -13,6 +13,11 @@ import (
 	"github.com/gofiber/fiber/v2"
 )
 
+// @title Farming API
+// @version 1.0
+// @description API untuk sistem farming
+// @host localhost:3000
+// @BasePath /
 func main() {
 
 	config := config.LoadConfig()
@@ -26,6 +31,9 @@ func main() {
 	app := fiber.New()
 
 	routes.SetupRoutes(app, db)
+
+	log.Println("Server running on http://localhost:" + config.AppPort)
+	log.Println("Swagger docs at http://localhost:" + config.AppPort + "/swagger/index.html")
 
 	log.Fatal(app.Listen(":" + config.AppPort))
 }
