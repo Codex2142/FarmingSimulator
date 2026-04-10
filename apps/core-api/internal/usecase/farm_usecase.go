@@ -5,6 +5,7 @@ import (
 	"farming/internal/dto"
 	"farming/internal/model"
 	"farming/internal/repository"
+	"farming/pkg/utils"
 )
 
 type FarmUsecase interface {
@@ -12,6 +13,7 @@ type FarmUsecase interface {
 	GetFarmById(ctx context.Context, id int) (dto.FarmResponse, error)
 	UpdateFarm(ctx context.Context, id int, req dto.UpdateFarmRequest) (dto.FarmResponse, error)
 	DeleteFarm(ctx context.Context, id int) error
+	GetAllFarms(ctx context.Context) ([]dto.FarmResponse, error)
 }
 
 type farmUsecase struct {
@@ -19,8 +21,11 @@ type farmUsecase struct {
 	userRepo repository.UserRepository
 }
 
-func NewFarmUsecase(farmRepo repository.FarmRepository) FarmUsecase {
-	return &farmUsecase{farmRepo: farmRepo}
+func NewFarmUsecase(farmRepo repository.FarmRepository, userRepo repository.UserRepository) FarmUsecase {
+	return &farmUsecase{
+		farmRepo: farmRepo,
+		userRepo: userRepo,
+	}
 }
 
 func (u *farmUsecase) CreateFarm(ctx context.Context, req dto.CreateFarmRequest) (dto.FarmResponse, error) {
@@ -43,12 +48,13 @@ func (u *farmUsecase) CreateFarm(ctx context.Context, req dto.CreateFarmRequest)
 		return dto.FarmResponse{}, err
 	}
 
-	return dto.FarmResponse{
-		ID:       createdFarm.ID,
-		Name:     createdFarm.Name,
-		Location: createdFarm.Location,
-		LeaderID: *createdFarm.LeaderID,
-	}, nil
+	// ambil ulang dengan join
+	fullFarm, err := u.farmRepo.GetFarmById(ctx, createdFarm.ID)
+	if err != nil {
+		return dto.FarmResponse{}, err
+	}
+
+	return utils.ToFarmResponse(fullFarm), nil
 
 }
 
@@ -59,12 +65,7 @@ func (u *farmUsecase) GetFarmById(ctx context.Context, id int) (dto.FarmResponse
 		return dto.FarmResponse{}, err
 	}
 
-	return dto.FarmResponse{
-		ID:       farm.ID,
-		Name:     farm.Name,
-		Location: farm.Location,
-		LeaderID: *farm.LeaderID,
-	}, nil
+	return utils.ToFarmResponse(farm), nil
 }
 
 func (u *farmUsecase) UpdateFarm(ctx context.Context, id int, req dto.UpdateFarmRequest) (dto.FarmResponse, error) {
@@ -87,15 +88,31 @@ func (u *farmUsecase) UpdateFarm(ctx context.Context, id int, req dto.UpdateFarm
 		return dto.FarmResponse{}, err
 	}
 
-	return dto.FarmResponse{
-		ID:       updatedFarm.ID,
-		Name:     updatedFarm.Name,
-		Location: updatedFarm.Location,
-		LeaderID: *updatedFarm.LeaderID,
-	}, nil
+	fullFarm, err := u.farmRepo.GetFarmById(ctx, updatedFarm.ID)
+	if err != nil {
+		return dto.FarmResponse{}, err
+	}
+
+	return utils.ToFarmResponse(fullFarm), nil
 }
 
 func (u *farmUsecase) DeleteFarm(ctx context.Context, id int) error {
 	_, err := u.farmRepo.DeleteFarm(ctx, id)
 	return err
+}
+
+func (u *farmUsecase) GetAllFarms(ctx context.Context) ([]dto.FarmResponse, error) {
+
+	farms, err := u.farmRepo.GetAllFarms(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	var result []dto.FarmResponse
+
+	for _, farm := range farms {
+		result = append(result, utils.ToFarmResponse(farm))
+	}
+
+	return result, nil
 }

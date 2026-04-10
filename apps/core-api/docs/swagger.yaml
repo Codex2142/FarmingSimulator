@@ -1,5 +1,17 @@
 basePath: /api
 definitions:
+  dto.CreateFarmRequest:
+    properties:
+      leader_id:
+        type: integer
+      location:
+        type: string
+      name:
+        type: string
+    required:
+    - location
+    - name
+    type: object
   dto.CreateUserRequest:
     properties:
       name:
@@ -13,6 +25,29 @@ definitions:
     - name
     - password
     - phone
+    type: object
+  dto.FarmResponse:
+    properties:
+      id:
+        type: integer
+      leader:
+        $ref: '#/definitions/dto.UserSimple'
+      location:
+        type: string
+      name:
+        type: string
+    type: object
+  dto.UpdateFarmRequest:
+    properties:
+      leader_id:
+        type: integer
+      location:
+        type: string
+      name:
+        type: string
+    required:
+    - location
+    - name
     type: object
   dto.UpdateUserRequest:
     properties:
@@ -33,6 +68,15 @@ definitions:
       phone:
         type: string
     type: object
+  dto.UserSimple:
+    properties:
+      id:
+        type: integer
+      name:
+        type: string
+      phone:
+        type: string
+    type: object
 host: localhost:3000
 info:
   contact: {}
@@ -40,6 +84,136 @@ info:
   title: Farming API
   version: "1.0"
 paths:
+  /farms:
+    get:
+      description: Mengambil semua data user
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get all farms
+      tags:
+      - Farms
+    post:
+      consumes:
+      - application/json
+      description: Membuat Farm baru
+      parameters:
+      - description: Create Farm
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.CreateFarmRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/dto.FarmResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Create new arm
+      tags:
+      - Farms
+  /farms/{id}:
+    delete:
+      description: Hapus farm
+      parameters:
+      - description: Farms ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Delete farm
+      tags:
+      - Farms
+    get:
+      description: Ambil data farm berdasarkan ID
+      parameters:
+      - description: Farm ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.FarmResponse'
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: get farm By id
+      tags:
+      - Farms
+    put:
+      consumes:
+      - application/json
+      description: Update data user
+      parameters:
+      - description: Farm ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Update Farm
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.UpdateFarmRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.FarmResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Update user
+      tags:
+      - Farms
   /users:
     get:
       description: Mengambil semua data user

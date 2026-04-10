@@ -37,7 +37,7 @@ func SetupRoutes(app *fiber.App, db *pgx.Conn) {
 	farmRepo := repository.NewFarmRepo(db)
 	// Membuat usecase user yang menggunakan repository
 	userUC := usecase.NewUserUsecase(userRepo)
-	farmUC := usecase.NewFarmUsecase(farmRepo)
+	farmUC := usecase.NewFarmUsecase(farmRepo, userRepo)
 	// Membuat handler user yang menggunakan usecase
 	userHandler := handler.NewUserHandler(userUC)
 	farmHandler := handler.NewFarmHandler(farmUC)
@@ -50,9 +50,10 @@ func SetupRoutes(app *fiber.App, db *pgx.Conn) {
 	api.Delete("users/:id", userHandler.DeleteUser)
 
 	// ENDPOINT (farms CRUD)
+	api.Get("/farms/", farmHandler.GetAllFarms)
 	api.Post("/farms", farmHandler.CreateFarm)
 	api.Get("/farms/:id", farmHandler.GetFarm)
 	api.Put("/farms/:id", farmHandler.UpdateFarm)
-	api.Delete("farms/:id", farmHandler.DeleteUser)
+	api.Delete("/farms/:id", farmHandler.DeleteFarm)
 
 }

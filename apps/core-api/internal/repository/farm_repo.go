@@ -12,6 +12,7 @@ type FarmRepository interface {
 	GetFarmById(ctx context.Context, id int) (model.Farm, error)
 	UpdateFarm(ctx context.Context, farm model.Farm, id int) (model.Farm, error)
 	DeleteFarm(ctx context.Context, id int) (model.Farm, error)
+	GetAllFarms(ctx context.Context) ([]model.Farm, error)
 }
 
 type farmRepo struct {
@@ -23,7 +24,7 @@ func NewFarmRepo(db *pgx.Conn) FarmRepository {
 }
 
 func (r *farmRepo) CreateFarm(ctx context.Context, farm model.Farm) (model.Farm, error) {
-	query := `INSERT INTO farms (name, location, leader_id) VALUES($1, $2, $3) RETURNING id, name, location, leader_id, created_at`
+	query := `INSERT INTO farms (name, location, leader_id) VALUES($1, $2, $3) RETURNING id, name, location, leader_id`
 
 	// Scan digunakan untuk menyalin hasil RETURNING ke struct farm
 	err := r.db.QueryRow(ctx, query, farm.Name, farm.Location, farm.LeaderID).Scan(
@@ -35,12 +36,35 @@ func (r *farmRepo) CreateFarm(ctx context.Context, farm model.Farm) (model.Farm,
 
 func (r *farmRepo) GetFarmById(ctx context.Context, id int) (model.Farm, error) {
 	var farm model.Farm
-	query := `SELECT id, name, location, leader_id, created_at FROM farms WHERE id=$1`
+	query := `
+		SELECT 
+			f.id, 
+			f.name, 
+			f.location, 
+			f.leader_id,
+			u.id,
+			u.name,
+			u.phone
+		FROM farms f
+		LEFT JOIN users u ON f.leader_id = u.id
+		WHERE f.id = $1
+		`
+
+	var user model.User
 
 	err := r.db.QueryRow(ctx, query, id).Scan(
-		&farm.ID, &farm.Name, &farm.Location, &farm.LeaderID,
+		&farm.ID,
+		&farm.Name,
+		&farm.Location,
+		&farm.LeaderID,
+		&user.ID,
+		&user.Name,
+		&user.Phone,
 	)
 
+	if farm.LeaderID != nil {
+		farm.Leader = &user
+	}
 	return farm, err
 }
 
@@ -60,4 +84,60 @@ func (r *farmRepo) DeleteFarm(ctx context.Context, id int) (model.Farm, error) {
 
 	_, err := r.db.Exec(ctx, query, id)
 	return model.Farm{}, err
+}
+
+func (r *farmRepo) GetAllFarms(ctx context.Context) ([]model.Farm, error) {
+
+	query := `
+		SELECT 
+			f.id, 
+			f.name, 
+			f.location, 
+			f.leader_id, 
+			u.id,
+			u.name, 
+			u.phone 
+		FROM 
+			farms AS f 
+		LEFT JOIN users AS u 
+		ON f.leader_id=u.id
+		`
+
+	rows, err := r.db.Query(ctx, query)
+	if err != nil {
+		return nil, err
+	}
+
+	defer rows.Close()
+
+	var farms []model.Farm
+
+	for rows.Next() {
+		var farm model.Farm
+		var user model.User
+
+		err := rows.Scan(
+			&farm.ID,
+			&farm.Name,
+			&farm.Location,
+			&farm.LeaderID,
+			&user.ID,
+			&user.Name,
+			&user.Phone,
+		)
+
+		if err != nil {
+			return nil, err
+		}
+
+		// null handler
+		if farm.LeaderID != nil {
+			farm.Leader = &user
+		}
+
+		farms = append(farms, farm)
+	}
+
+	return farms, nil
+
 }

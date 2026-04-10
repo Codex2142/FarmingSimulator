@@ -24,10 +24,3 @@ type UpdateUserRequest struct {
 	Name  string `json:"name" validate:"required"`
 	Phone string `json:"phone" validate:"required"`
 }
-
-// ====================================================================
-// Struktur ini digunakan untuk menampilkan semua user (bisa Filter)
-// type showAllUsers struct {
-// 	Users []UserResponse `json:"users"`
-// 	Total int            `json:"total"`
-// }
