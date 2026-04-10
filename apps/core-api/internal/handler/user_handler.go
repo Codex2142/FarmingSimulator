@@ -70,6 +70,15 @@ func (h *UserHandler) CreateUser(c *fiber.Ctx) error {
 
 // ====================================================================
 // Handler untuk GetUser
+// GetUser godoc
+// @Summary Get user by ID
+// @Description Ambil data user berdasarkan ID
+// @Tags Users
+// @Produce json
+// @Param id path int true "User ID"
+// @Success 200 {object} dto.UserResponse
+// @Failure 404 {object} map[string]string
+// @Router /users/{id} [get]
 func (h *UserHandler) GetUser(c *fiber.Ctx) error {
 
 	// Mengambil parameter "id" dari URL path, misal /users/1
@@ -188,6 +197,14 @@ func (h *UserHandler) DeleteUser(c *fiber.Ctx) error {
 	})
 }
 
+// GetAllUsers godoc
+// @Summary Get all users
+// @Description Mengambil semua data user
+// @Tags Users
+// @Produce json
+// @Success 200 {object} map[string]interface{}
+// @Failure 500 {object} map[string]string
+// @Router /users [get]
 func (h *UserHandler) GetAllUsers(c *fiber.Ctx) error {
 	users, err := h.userUC.GetAllUsers(c.Context())
 

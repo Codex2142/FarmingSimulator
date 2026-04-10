@@ -1,4 +1,4 @@
-basePath: /
+basePath: /api
 definitions:
   dto.CreateUserRequest:
     properties:
@@ -41,6 +41,25 @@ info:
   version: "1.0"
 paths:
   /users:
+    get:
+      description: Mengambil semua data user
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get all users
+      tags:
+      - Users
     post:
       consumes:
       - application/json
@@ -93,6 +112,30 @@ paths:
               type: string
             type: object
       summary: Delete user
+      tags:
+      - Users
+    get:
+      description: Ambil data user berdasarkan ID
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.UserResponse'
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get user by ID
       tags:
       - Users
     put:

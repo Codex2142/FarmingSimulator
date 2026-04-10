@@ -17,7 +17,7 @@ import (
 // @version 1.0
 // @description API untuk sistem farming
 // @host localhost:3000
-// @BasePath /
+// @BasePath /api
 func main() {
 
 	config := config.LoadConfig()
