@@ -134,7 +134,7 @@ paths:
             additionalProperties:
               type: string
             type: object
-      summary: Create new arm
+      summary: Create new farm
       tags:
       - Farms
   /farms/{id}:

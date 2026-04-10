@@ -17,7 +17,7 @@ type UserRepository interface {
 	GetUserById(ctx context.Context, id int) (model.User, error)
 	UpdateUser(ctx context.Context, user model.User, id int) (model.User, error)
 	DeleteUser(ctx context.Context, id int) (model.User, error)
-	GetAllUsers(ctx context.Context) ([]model.User, error)
+	GetAllUsers(ctx context.Context, limit, offset int) ([]model.User, int, error)
 }
 
 // ====================================================================
@@ -81,7 +81,16 @@ func (r *userRepo) DeleteUser(ctx context.Context, id int) (model.User, error) {
 	return model.User{}, err
 }
 
-func (r *userRepo) GetAllUsers(ctx context.Context) ([]model.User, error) {
+func (r *userRepo) GetAllUsers(ctx context.Context, limit, offset int) ([]model.User, int, error) {
+
+	// ambil total keseluruhan data
+	var total int
+	countQuery := `SELECT COUNT(*) FROM users`
+
+	err := r.db.QueryRow(ctx, countQuery).Scan(&total)
+	if err != nil {
+		return nil, 0, err
+	}
 
 	// Query ambil semua user
 	query := `SELECT id, name, phone, password, created_at, updated_at FROM users`
@@ -89,7 +98,7 @@ func (r *userRepo) GetAllUsers(ctx context.Context) ([]model.User, error) {
 	// Eksekusi query (karena banyak data pakai Query, bukan QueryRow)
 	rows, err := r.db.Query(ctx, query)
 	if err != nil {
-		return nil, err
+		return nil, 0, err
 	}
 	defer rows.Close() // penting untuk mencegah memory leak
 
@@ -108,11 +117,11 @@ func (r *userRepo) GetAllUsers(ctx context.Context) ([]model.User, error) {
 			&user.UpdatedAt,
 		)
 		if err != nil {
-			return nil, err
+			return nil, 0, err
 		}
 
 		users = append(users, user)
 	}
 
-	return users, nil
+	return users, total, nil
 }

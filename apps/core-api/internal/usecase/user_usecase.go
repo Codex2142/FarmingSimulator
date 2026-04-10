@@ -25,7 +25,7 @@ type UserUsecase interface {
 	// delete User
 	DeleteUser(ctx context.Context, id int) error
 
-	GetAllUsers(ctx context.Context) ([]dto.UserResponse, error)
+	GetAllUsers(ctx context.Context, page, limit int) ([]dto.UserResponse, dto.PaginationResponse, error)
 }
 
 // ====================================================================
@@ -121,10 +121,14 @@ func (u *userUsecase) DeleteUser(ctx context.Context, id int) error {
 	return err
 }
 
-func (u *userUsecase) GetAllUsers(ctx context.Context) ([]dto.UserResponse, error) {
-	users, err := u.userRepo.GetAllUsers(ctx)
+func (u *userUsecase) GetAllUsers(ctx context.Context, page, limit int) ([]dto.UserResponse, dto.PaginationResponse, error) {
+
+	// Helper calculate pagination
+	limit, offset := utils.CalculatePagination(page, limit)
+
+	users, total, err := u.userRepo.GetAllUsers(ctx, limit, offset)
 	if err != nil {
-		return nil, err
+		return nil, dto.PaginationResponse{}, err
 	}
 
 	var result []dto.UserResponse
@@ -136,5 +140,14 @@ func (u *userUsecase) GetAllUsers(ctx context.Context) ([]dto.UserResponse, erro
 		})
 	}
 
-	return result, nil
+	totalPages := (total + limit - 1) / limit
+
+	meta := dto.PaginationResponse{
+		Page:       page,
+		Limit:      limit,
+		Total:      total,
+		TotalPages: totalPages,
+	}
+
+	return result, meta, nil
 }

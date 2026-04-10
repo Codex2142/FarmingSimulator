@@ -185,7 +185,10 @@ func (h *FarmHandler) DeleteFarm(c *fiber.Ctx) error {
 // @Router /farms [get]
 func (h *FarmHandler) GetAllFarms(c *fiber.Ctx) error {
 
-	farms, err := h.farmUC.GetAllFarms(c.Context())
+	page := c.QueryInt("page", 1)
+	limit := c.QueryInt("limit", 10)
+
+	farms, meta, err := h.farmUC.GetAllFarms(c.Context(), page, limit)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"message": "failed",
@@ -196,6 +199,7 @@ func (h *FarmHandler) GetAllFarms(c *fiber.Ctx) error {
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{
 		"message": "success",
 		"farms":   farms,
+		"meta":    meta,
 		"total":   len(farms),
 	})
 }

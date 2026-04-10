@@ -206,7 +206,11 @@ func (h *UserHandler) DeleteUser(c *fiber.Ctx) error {
 // @Failure 500 {object} map[string]string
 // @Router /users [get]
 func (h *UserHandler) GetAllUsers(c *fiber.Ctx) error {
-	users, err := h.userUC.GetAllUsers(c.Context())
+
+	page := c.QueryInt("page", 1)
+	limit := c.QueryInt("limit", 10)
+
+	users, meta, err := h.userUC.GetAllUsers(c.Context(), page, limit)
 
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
@@ -218,6 +222,7 @@ func (h *UserHandler) GetAllUsers(c *fiber.Ctx) error {
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{
 		"message": "success",
 		"users":   users,
+		"meta":    meta,
 		"total":   len(users),
 	})
 }

@@ -13,7 +13,7 @@ type FarmUsecase interface {
 	GetFarmById(ctx context.Context, id int) (dto.FarmResponse, error)
 	UpdateFarm(ctx context.Context, id int, req dto.UpdateFarmRequest) (dto.FarmResponse, error)
 	DeleteFarm(ctx context.Context, id int) error
-	GetAllFarms(ctx context.Context) ([]dto.FarmResponse, error)
+	GetAllFarms(ctx context.Context, page, limit int) ([]dto.FarmResponse, dto.PaginationResponse, error)
 }
 
 type farmUsecase struct {
@@ -101,11 +101,13 @@ func (u *farmUsecase) DeleteFarm(ctx context.Context, id int) error {
 	return err
 }
 
-func (u *farmUsecase) GetAllFarms(ctx context.Context) ([]dto.FarmResponse, error) {
+func (u *farmUsecase) GetAllFarms(ctx context.Context, page, limit int) ([]dto.FarmResponse, dto.PaginationResponse, error) {
 
-	farms, err := u.farmRepo.GetAllFarms(ctx)
+	limit, offset := utils.CalculatePagination(page, limit)
+
+	farms, total, err := u.farmRepo.GetAllFarms(ctx, limit, offset)
 	if err != nil {
-		return nil, err
+		return nil, dto.PaginationResponse{}, err
 	}
 
 	var result []dto.FarmResponse
@@ -114,5 +116,14 @@ func (u *farmUsecase) GetAllFarms(ctx context.Context) ([]dto.FarmResponse, erro
 		result = append(result, utils.ToFarmResponse(farm))
 	}
 
-	return result, nil
+	totalPages := (total + limit - 1) / limit
+
+	meta := dto.PaginationResponse{
+		Page:       page,
+		Limit:      limit,
+		Total:      total,
+		TotalPages: totalPages,
+	}
+
+	return result, meta, nil
 }

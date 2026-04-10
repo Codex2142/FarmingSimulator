@@ -12,7 +12,7 @@ type FarmRepository interface {
 	GetFarmById(ctx context.Context, id int) (model.Farm, error)
 	UpdateFarm(ctx context.Context, farm model.Farm, id int) (model.Farm, error)
 	DeleteFarm(ctx context.Context, id int) (model.Farm, error)
-	GetAllFarms(ctx context.Context) ([]model.Farm, error)
+	GetAllFarms(ctx context.Context, limit, offset int) ([]model.Farm, int, error)
 }
 
 type farmRepo struct {
@@ -86,7 +86,16 @@ func (r *farmRepo) DeleteFarm(ctx context.Context, id int) (model.Farm, error) {
 	return model.Farm{}, err
 }
 
-func (r *farmRepo) GetAllFarms(ctx context.Context) ([]model.Farm, error) {
+func (r *farmRepo) GetAllFarms(ctx context.Context, limit, offset int) ([]model.Farm, int, error) {
+
+	// ambil total keseluruhan data
+	var total int
+	countQuery := `SELECT COUNT(*) FROM farms`
+
+	err := r.db.QueryRow(ctx, countQuery).Scan(&total)
+	if err != nil {
+		return nil, 0, err
+	}
 
 	query := `
 		SELECT 
@@ -105,7 +114,7 @@ func (r *farmRepo) GetAllFarms(ctx context.Context) ([]model.Farm, error) {
 
 	rows, err := r.db.Query(ctx, query)
 	if err != nil {
-		return nil, err
+		return nil, 0, err
 	}
 
 	defer rows.Close()
@@ -127,7 +136,7 @@ func (r *farmRepo) GetAllFarms(ctx context.Context) ([]model.Farm, error) {
 		)
 
 		if err != nil {
-			return nil, err
+			return nil, 0, err
 		}
 
 		// null handler
@@ -138,6 +147,6 @@ func (r *farmRepo) GetAllFarms(ctx context.Context) ([]model.Farm, error) {
 		farms = append(farms, farm)
 	}
 
-	return farms, nil
+	return farms, total, nil
 
 }

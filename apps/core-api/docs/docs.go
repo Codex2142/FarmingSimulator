@@ -55,7 +55,7 @@ const docTemplate = `{
                 "tags": [
                     "Farms"
                 ],
-                "summary": "Create new arm",
+                "summary": "Create new farm",
                 "parameters": [
                     {
                         "description": "Create Farm",
