@@ -432,7 +432,8 @@ const docTemplate = `{
             "required": [
                 "name",
                 "password",
-                "phone"
+                "phone",
+                "role"
             ],
             "properties": {
                 "name": {
@@ -443,6 +444,9 @@ const docTemplate = `{
                     "minLength": 8
                 },
                 "phone": {
+                    "type": "string"
+                },
+                "role": {
                     "type": "string"
                 }
             }
@@ -486,13 +490,17 @@ const docTemplate = `{
             "type": "object",
             "required": [
                 "name",
-                "phone"
+                "phone",
+                "role"
             ],
             "properties": {
                 "name": {
                     "type": "string"
                 },
                 "phone": {
+                    "type": "string"
+                },
+                "role": {
                     "type": "string"
                 }
             }
@@ -507,6 +515,9 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "phone": {
+                    "type": "string"
+                },
+                "role": {
                     "type": "string"
                 }
             }

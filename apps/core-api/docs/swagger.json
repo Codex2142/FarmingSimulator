@@ -426,7 +426,8 @@
             "required": [
                 "name",
                 "password",
-                "phone"
+                "phone",
+                "role"
             ],
             "properties": {
                 "name": {
@@ -437,6 +438,9 @@
                     "minLength": 8
                 },
                 "phone": {
+                    "type": "string"
+                },
+                "role": {
                     "type": "string"
                 }
             }
@@ -480,13 +484,17 @@
             "type": "object",
             "required": [
                 "name",
-                "phone"
+                "phone",
+                "role"
             ],
             "properties": {
                 "name": {
                     "type": "string"
                 },
                 "phone": {
+                    "type": "string"
+                },
+                "role": {
                     "type": "string"
                 }
             }
@@ -501,6 +509,9 @@
                     "type": "string"
                 },
                 "phone": {
+                    "type": "string"
+                },
+                "role": {
                     "type": "string"
                 }
             }

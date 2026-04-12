@@ -36,11 +36,11 @@ func NewUserRepo(db *pgx.Conn) UserRepository {
 // ====================================================================
 // Implementasi Create
 func (r *userRepo) CreateUser(ctx context.Context, user model.User) (model.User, error) {
-	query := `INSERT INTO users(name, phone, password) VALUES($1, $2, $3) RETURNING id, name, phone, created_at`
+	query := `INSERT INTO users(name, phone, password, role) VALUES($1, $2, $3, $4) RETURNING id, name, phone, role, created_at`
 
 	// Scan digunakan untuk menyalin hasil RETURNING ke struct user
-	err := r.db.QueryRow(ctx, query, user.Name, user.Phone, user.Password).Scan(
-		&user.ID, &user.Name, &user.Phone, &user.CreatedAt,
+	err := r.db.QueryRow(ctx, query, user.Name, user.Phone, user.Password, user.Role).Scan(
+		&user.ID, &user.Name, &user.Phone, &user.Role, &user.CreatedAt,
 	)
 	return user, err
 }
@@ -49,11 +49,11 @@ func (r *userRepo) CreateUser(ctx context.Context, user model.User) (model.User,
 // Implementasi GetbyID
 func (r *userRepo) GetUserById(ctx context.Context, id int) (model.User, error) {
 	var user model.User
-	query := `SELECT id, name, phone, created_at FROM users WHERE id=$1`
+	query := `SELECT id, name, phone, role, created_at FROM users WHERE id=$1`
 
 	// Scan menyalin hasil query ke struct user
 	err := r.db.QueryRow(ctx, query, id).Scan(
-		&user.ID, &user.Name, &user.Phone, &user.CreatedAt,
+		&user.ID, &user.Name, &user.Phone, &user.Role, &user.CreatedAt,
 	)
 
 	return user, err
@@ -64,9 +64,9 @@ func (r *userRepo) GetUserById(ctx context.Context, id int) (model.User, error) 
 func (r *userRepo) UpdateUser(ctx context.Context, user model.User, id int) (model.User, error) {
 
 	// membuat query kosong
-	query := `UPDATE users SET name = $1, phone = $2 WHERE id = $3 RETURNING id, name, phone, updated_at`
-	err := r.db.QueryRow(ctx, query, user.Name, user.Phone, id).Scan(
-		&user.ID, &user.Name, &user.Phone, &user.UpdatedAt,
+	query := `UPDATE users SET name = $1, phone = $2, role = $3 WHERE id = $4 RETURNING id, name, phone, role, updated_at`
+	err := r.db.QueryRow(ctx, query, user.Name, user.Phone, user.Role, id).Scan(
+		&user.ID, &user.Name, &user.Phone, &user.Role, &user.UpdatedAt,
 	)
 
 	return user, err
@@ -93,7 +93,7 @@ func (r *userRepo) GetAllUsers(ctx context.Context, limit, offset int) ([]model.
 	}
 
 	// Query ambil semua user
-	query := `SELECT id, name, phone, password, created_at, updated_at FROM users`
+	query := `SELECT id, name, phone, role, created_at, updated_at FROM users`
 
 	// Eksekusi query (karena banyak data pakai Query, bukan QueryRow)
 	rows, err := r.db.Query(ctx, query)
@@ -112,7 +112,7 @@ func (r *userRepo) GetAllUsers(ctx context.Context, limit, offset int) ([]model.
 			&user.ID,
 			&user.Name,
 			&user.Phone,
-			&user.Password,
+			&user.Role,
 			&user.CreatedAt,
 			&user.UpdatedAt,
 		)

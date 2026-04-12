@@ -3,6 +3,8 @@ CREATE TABLE IF NOT EXISTS users (
     name VARCHAR(255),
     phone VARCHAR(255) UNIQUE,
     password TEXT,
+    role VARCHAR(20) DEFAULT 'partner',
+    CHECK (role IN ('admin', 'partner')),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );

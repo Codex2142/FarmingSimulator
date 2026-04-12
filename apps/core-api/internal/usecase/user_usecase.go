@@ -5,6 +5,7 @@ import (
 	"farming/internal/dto"
 	"farming/internal/model"
 	"farming/internal/repository"
+	"farming/pkg/constants"
 	"farming/pkg/utils"
 )
 
@@ -49,11 +50,18 @@ func (u *userUsecase) CreateUser(ctx context.Context, req dto.CreateUserRequest)
 	if err != nil {
 		return dto.UserResponse{}, err
 	}
+
+	// default value jika role kosong
+	if req.Role == "" {
+		req.Role = string(constants.Partner)
+	}
+
 	// Membuat model.User dari request DTO
 	user := model.User{
 		Name:     req.Name,
 		Phone:    req.Phone,
 		Password: hashedPassword,
+		Role:     req.Role,
 	}
 
 	// Memanggil repository untuk menyimpan user ke database
@@ -69,6 +77,7 @@ func (u *userUsecase) CreateUser(ctx context.Context, req dto.CreateUserRequest)
 		ID:    createdUser.ID,
 		Name:  createdUser.Name,
 		Phone: createdUser.Phone,
+		Role:  createdUser.Role,
 	}, nil
 }
 
@@ -87,6 +96,7 @@ func (u *userUsecase) GetUserById(ctx context.Context, id int) (dto.UserResponse
 		ID:    user.ID,
 		Name:  user.Name,
 		Phone: user.Phone,
+		Role:  user.Role,
 	}, nil
 }
 
@@ -94,10 +104,16 @@ func (u *userUsecase) GetUserById(ctx context.Context, id int) (dto.UserResponse
 // Memperbarui User
 func (u *userUsecase) UpdateUser(ctx context.Context, id int, req dto.UpdateUserRequest) (dto.UserResponse, error) {
 
+	// default value jika role kosong
+	if req.Role == "" {
+		req.Role = string(constants.Partner)
+	}
+
 	// Membuat struct berdasarkan nilai dari request
 	user := model.User{
 		Name:  req.Name,
 		Phone: req.Phone,
+		Role:  req.Role,
 	}
 
 	// Memanggil repository untuk mengambil user dari database
@@ -111,6 +127,7 @@ func (u *userUsecase) UpdateUser(ctx context.Context, id int, req dto.UpdateUser
 		ID:    updatedUser.ID,
 		Name:  updatedUser.Name,
 		Phone: updatedUser.Phone,
+		Role:  updatedUser.Role,
 	}, nil
 }
 
@@ -137,6 +154,7 @@ func (u *userUsecase) GetAllUsers(ctx context.Context, page, limit int) ([]dto.U
 			ID:    user.ID,
 			Name:  user.Name,
 			Phone: user.Phone,
+			Role:  user.Role,
 		})
 	}
 
