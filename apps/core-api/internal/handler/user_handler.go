@@ -3,7 +3,7 @@ package handler
 import (
 	"farming/internal/dto"
 	"farming/internal/usecase"
-	v "farming/internal/validator"
+	"farming/pkg/utils"
 
 	"github.com/gofiber/fiber/v2"
 )
@@ -37,35 +37,19 @@ func NewUserHandler(userUC usecase.UserUsecase) *UserHandler {
 func (h *UserHandler) CreateUser(c *fiber.Ctx) error {
 	var req dto.CreateUserRequest
 
-	// Mengambil data dari body request JSON dan mem-parsing ke struct dto
-	if err := c.BodyParser(&req); err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"message": "failed",
-			"error":   err.Error(),
-		})
+	// Parse dan validate dalam satu helper
+	if err := utils.ParseAndValidate(c, &req); err != nil {
+		return err
 	}
 
-	if err := v.Validate.Struct(req); err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"message": "failed",
-			"error":   v.FormatValidationError(err),
-		})
-	}
 	// Memanggil usecase untuk membuat user
 	user, err := h.userUC.CreateUser(c.Context(), req)
 	if err != nil {
-		// Jika usecase gagal (misal DB error), kembalikan status 500
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"message": "failed",
-			"error":   err.Error(),
-		})
+		return utils.InternalServerError(c, err.Error())
 	}
 
 	// Jika sukses, kembalikan status 201 Created beserta data user
-	return c.Status(fiber.StatusCreated).JSON(fiber.Map{
-		"message": "success",
-		"data":    user,
-	})
+	return utils.SuccessWithData(c, fiber.StatusCreated, "success", user)
 }
 
 // ====================================================================
@@ -80,34 +64,20 @@ func (h *UserHandler) CreateUser(c *fiber.Ctx) error {
 // @Failure 404 {object} map[string]string
 // @Router /users/{id} [get]
 func (h *UserHandler) GetUser(c *fiber.Ctx) error {
-
 	// Mengambil parameter "id" dari URL path, misal /users/1
-	id, err := c.ParamsInt("id")
+	id, err := utils.ExtractIDParam(c)
 	if err != nil {
-
-		// Jika id bukan angka, kembalikan 400 Bad Request
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"message": "failed",
-			"error":   "ID tidak valid!",
-		})
+		return err
 	}
 
 	// Memanggil usecase untuk mengambil data user berdasarkan id
 	user, err := h.userUC.GetUserById(c.Context(), id)
 	if err != nil {
-
-		// Jika user tidak ditemukan, kembalikan status 404
-		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
-			"message": "failed",
-			"error":   "User Tidak dapat Ditemukan!",
-		})
+		return utils.NotFound(c, "User Tidak dapat Ditemukan!")
 	}
 
 	// Jika sukses, kembalikan data user dengan status 200 OK
-	return c.Status(fiber.StatusOK).JSON(fiber.Map{
-		"message": "success",
-		"data":    user,
-	})
+	return utils.SuccessWithData(c, fiber.StatusOK, "success", user)
 }
 
 // ====================================================================
@@ -124,43 +94,23 @@ func (h *UserHandler) GetUser(c *fiber.Ctx) error {
 // @Failure 400 {object} map[string]string
 // @Router /users/{id} [put]
 func (h *UserHandler) UpdateUser(c *fiber.Ctx) error {
-	id, err := c.ParamsInt("id")
-
+	id, err := utils.ExtractIDParam(c)
 	if err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"message": "failed",
-			"error":   "ID Tidak ditemukan!",
-		})
+		return err
 	}
 
 	var req dto.UpdateUserRequest
 
-	if err := c.BodyParser(&req); err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"message": "failed",
-			"error":   err.Error(),
-		})
-	}
-
-	if err := v.Validate.Struct(req); err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"message": "failed",
-			"error":   v.FormatValidationError(err),
-		})
+	if err := utils.ParseAndValidate(c, &req); err != nil {
+		return err
 	}
 
 	user, err := h.userUC.UpdateUser(c.Context(), id, req)
 	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"message": "failed",
-			"error":   err.Error(),
-		})
+		return utils.InternalServerError(c, err.Error())
 	}
 
-	return c.Status(fiber.StatusOK).JSON(fiber.Map{
-		"message": "success",
-		"data":    user,
-	})
+	return utils.SuccessWithData(c, fiber.StatusOK, "success", user)
 }
 
 // ====================================================================
@@ -174,27 +124,17 @@ func (h *UserHandler) UpdateUser(c *fiber.Ctx) error {
 // @Failure 400 {object} map[string]string
 // @Router /users/{id} [delete]
 func (h *UserHandler) DeleteUser(c *fiber.Ctx) error {
-	id, err := c.ParamsInt("id")
-
+	id, err := utils.ExtractIDParam(c)
 	if err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"message": "failed",
-			"error":   "ID Tidak valid!",
-		})
+		return err
 	}
 
 	err = h.userUC.DeleteUser(c.Context(), id)
-
 	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"message": "failed",
-			"error":   err.Error(),
-		})
+		return utils.InternalServerError(c, err.Error())
 	}
 
-	return c.Status(fiber.StatusOK).JSON(fiber.Map{
-		"message": "success",
-	})
+	return utils.Success(c, fiber.StatusNoContent, "success")
 }
 
 // GetAllUsers godoc
@@ -206,23 +146,13 @@ func (h *UserHandler) DeleteUser(c *fiber.Ctx) error {
 // @Failure 500 {object} map[string]string
 // @Router /users [get]
 func (h *UserHandler) GetAllUsers(c *fiber.Ctx) error {
-
 	page := c.QueryInt("page", 1)
 	limit := c.QueryInt("limit", 10)
 
 	users, meta, err := h.userUC.GetAllUsers(c.Context(), page, limit)
-
 	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"message": "error",
-			"error":   err.Error(),
-		})
+		return utils.InternalServerError(c, err.Error())
 	}
 
-	return c.Status(fiber.StatusOK).JSON(fiber.Map{
-		"message": "success",
-		"users":   users,
-		"meta":    meta,
-		"total":   len(users),
-	})
+	return utils.SuccessWithPagination(c, fiber.StatusOK, "success", users, meta)
 }

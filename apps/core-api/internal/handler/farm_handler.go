@@ -3,7 +3,7 @@ package handler
 import (
 	"farming/internal/dto"
 	"farming/internal/usecase"
-	v "farming/internal/validator"
+	"farming/pkg/utils"
 
 	"github.com/gofiber/fiber/v2"
 )
@@ -30,32 +30,16 @@ func NewFarmHandler(farmUC usecase.FarmUsecase) *FarmHandler {
 func (h *FarmHandler) CreateFarm(c *fiber.Ctx) error {
 	var req dto.CreateFarmRequest
 
-	if err := c.BodyParser(&req); err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"message": "failed",
-			"error":   err.Error(),
-		})
-	}
-
-	if err := v.Validate.Struct(req); err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"message": "failed",
-			"error":   v.FormatValidationError(err),
-		})
+	if err := utils.ParseAndValidate(c, &req); err != nil {
+		return err
 	}
 
 	farm, err := h.farmUC.CreateFarm(c.Context(), req)
 	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"message": "failed",
-			"error":   err.Error(),
-		})
+		return utils.InternalServerError(c, err.Error())
 	}
 
-	return c.Status(fiber.StatusCreated).JSON(fiber.Map{
-		"message": "success",
-		"data":    farm,
-	})
+	return utils.SuccessWithData(c, fiber.StatusCreated, "success", farm)
 }
 
 // GetFarm godoc
@@ -68,27 +52,17 @@ func (h *FarmHandler) CreateFarm(c *fiber.Ctx) error {
 // @Failure 404 {object} map[string]string
 // @Router /farms/{id} [get]
 func (h *FarmHandler) GetFarm(c *fiber.Ctx) error {
-
-	id, err := c.ParamsInt("id")
+	id, err := utils.ExtractIDParam(c)
 	if err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"message": "failed",
-			"error":   "ID tidak valid!",
-		})
+		return err
 	}
 
 	farm, err := h.farmUC.GetFarmById(c.Context(), id)
 	if err != nil {
-		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
-			"message": "failed",
-			"error":   "Farm tidak dapat ditemukan!",
-		})
+		return utils.NotFound(c, "Farm tidak dapat ditemukan!")
 	}
 
-	return c.Status(fiber.StatusOK).JSON(fiber.Map{
-		"message": "success",
-		"data":    farm,
-	})
+	return utils.SuccessWithData(c, fiber.StatusOK, "success", farm)
 }
 
 // UpdateFarm godoc
@@ -103,43 +77,23 @@ func (h *FarmHandler) GetFarm(c *fiber.Ctx) error {
 // @Failure 400 {object} map[string]string
 // @Router /farms/{id} [put]
 func (h *FarmHandler) UpdateFarm(c *fiber.Ctx) error {
-	id, err := c.ParamsInt("id")
-
+	id, err := utils.ExtractIDParam(c)
 	if err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"message": "failed",
-			"error":   "ID Tidak ditemukan!",
-		})
+		return err
 	}
 
 	var req dto.UpdateFarmRequest
 
-	if err := c.BodyParser(&req); err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"message": "failed",
-			"error":   err.Error(),
-		})
-	}
-
-	if err := v.Validate.Struct(req); err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"message": "failed",
-			"error":   v.FormatValidationError(err),
-		})
+	if err := utils.ParseAndValidate(c, &req); err != nil {
+		return err
 	}
 
 	farm, err := h.farmUC.UpdateFarm(c.Context(), id, req)
 	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"message": "failed",
-			"error":   err.Error(),
-		})
+		return utils.InternalServerError(c, err.Error())
 	}
 
-	return c.Status(fiber.StatusOK).JSON(fiber.Map{
-		"message": "success",
-		"data":    farm,
-	})
+	return utils.SuccessWithData(c, fiber.StatusOK, "success", farm)
 }
 
 // DeleteFarm godoc
@@ -151,28 +105,17 @@ func (h *FarmHandler) UpdateFarm(c *fiber.Ctx) error {
 // @Failure 400 {object} map[string]string
 // @Router /farms/{id} [delete]
 func (h *FarmHandler) DeleteFarm(c *fiber.Ctx) error {
-	id, err := c.ParamsInt("id")
-
+	id, err := utils.ExtractIDParam(c)
 	if err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"message": "failed",
-			"error":   "ID Tidak valid!",
-		})
+		return err
 	}
 
 	err = h.farmUC.DeleteFarm(c.Context(), id)
-
 	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"message": "failed",
-			"error":   err.Error(),
-		})
+		return utils.InternalServerError(c, err.Error())
 	}
 
-	return c.Status(fiber.StatusOK).JSON(fiber.Map{
-		"message": "success",
-	})
-
+	return utils.Success(c, fiber.StatusNoContent, "success")
 }
 
 // GetAllFarms godoc
@@ -184,22 +127,13 @@ func (h *FarmHandler) DeleteFarm(c *fiber.Ctx) error {
 // @Failure 500 {object} map[string]string
 // @Router /farms [get]
 func (h *FarmHandler) GetAllFarms(c *fiber.Ctx) error {
-
 	page := c.QueryInt("page", 1)
 	limit := c.QueryInt("limit", 10)
 
 	farms, meta, err := h.farmUC.GetAllFarms(c.Context(), page, limit)
 	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"message": "failed",
-			"error":   err.Error(),
-		})
+		return utils.InternalServerError(c, err.Error())
 	}
 
-	return c.Status(fiber.StatusOK).JSON(fiber.Map{
-		"message": "success",
-		"farms":   farms,
-		"meta":    meta,
-		"total":   len(farms),
-	})
+	return utils.SuccessWithPagination(c, fiber.StatusOK, "success", farms, meta)
 }
