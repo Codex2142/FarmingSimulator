@@ -51,18 +51,30 @@ func (r *farmRepo) GetFarmById(ctx context.Context, id int) (model.Farm, error) 
 		`
 
 	var user model.User
+	// Gunakan pointer untuk nullable fields dari LEFT JOIN
+	var userID *int
+	var userName *string
+	var userPhone *string
 
 	err := r.db.QueryRow(ctx, query, id).Scan(
 		&farm.ID,
 		&farm.Name,
 		&farm.Location,
 		&farm.LeaderID,
-		&user.ID,
-		&user.Name,
-		&user.Phone,
+		&userID,
+		&userName,
+		&userPhone,
 	)
 
-	if farm.LeaderID != nil {
+	// Hanya assign leader jika data user valid (tidak NULL dari LEFT JOIN)
+	if farm.LeaderID != nil && userID != nil {
+		user.ID = *userID
+		if userName != nil {
+			user.Name = *userName
+		}
+		if userPhone != nil {
+			user.Phone = *userPhone
+		}
 		farm.Leader = &user
 	}
 	return farm, err
@@ -110,9 +122,10 @@ func (r *farmRepo) GetAllFarms(ctx context.Context, limit, offset int) ([]model.
 			farms AS f 
 		LEFT JOIN users AS u 
 		ON f.leader_id=u.id
+		LIMIT $1 OFFSET $2
 		`
 
-	rows, err := r.db.Query(ctx, query)
+	rows, err := r.db.Query(ctx, query, limit, offset)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -125,22 +138,34 @@ func (r *farmRepo) GetAllFarms(ctx context.Context, limit, offset int) ([]model.
 		var farm model.Farm
 		var user model.User
 
+		// Gunakan pointer untuk nullable fields dari LEFT JOIN
+		var userID *int
+		var userName *string
+		var userPhone *string
+
 		err := rows.Scan(
 			&farm.ID,
 			&farm.Name,
 			&farm.Location,
 			&farm.LeaderID,
-			&user.ID,
-			&user.Name,
-			&user.Phone,
+			&userID,
+			&userName,
+			&userPhone,
 		)
 
 		if err != nil {
 			return nil, 0, err
 		}
 
-		// null handler
-		if farm.LeaderID != nil {
+		// Hanya assign leader jika data user valid (tidak NULL dari LEFT JOIN)
+		if farm.LeaderID != nil && userID != nil {
+			user.ID = *userID
+			if userName != nil {
+				user.Name = *userName
+			}
+			if userPhone != nil {
+				user.Phone = *userPhone
+			}
 			farm.Leader = &user
 		}
 

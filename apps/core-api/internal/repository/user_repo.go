@@ -92,11 +92,11 @@ func (r *userRepo) GetAllUsers(ctx context.Context, limit, offset int) ([]model.
 		return nil, 0, err
 	}
 
-	// Query ambil semua user
-	query := `SELECT id, name, phone, role, created_at, updated_at FROM users`
+	// Query ambil semua user dengan LIMIT dan OFFSET untuk pagination
+	query := `SELECT id, name, phone, role, created_at, updated_at FROM users LIMIT $1 OFFSET $2`
 
 	// Eksekusi query (karena banyak data pakai Query, bukan QueryRow)
-	rows, err := r.db.Query(ctx, query)
+	rows, err := r.db.Query(ctx, query, limit, offset)
 	if err != nil {
 		return nil, 0, err
 	}

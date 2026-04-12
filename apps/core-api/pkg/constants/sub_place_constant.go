@@ -1,9 +1,18 @@
 package constants
 
-type SubPlace string
+// SubPlaceType merepresentasikan tipe dari sub_place/lokasi budidaya
+type SubPlaceType string
 
 const (
-	Pond       SubPlace = "pond"
-	Hydroponic SubPlace = "hydroponic"
-	PlantBased SubPlace = "plant_based"
+	Pond        SubPlaceType = "pond"
+	PlantBed    SubPlaceType = "plant_bed"
+	Greenhouse  SubPlaceType = "greenhouse"
+)
+
+// SubPlaceStatus merepresentasikan status operasional sub_place
+type SubPlaceStatus string
+
+const (
+	Active   SubPlaceStatus = "active"
+	Inactive SubPlaceStatus = "inactive"
 )
