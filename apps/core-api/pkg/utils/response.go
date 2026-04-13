@@ -14,7 +14,6 @@ type APIResponse struct {
 
 // ====================================================================
 // Success Responses
-// ====================================================================
 
 // Success mengembalikan response sukses tanpa data
 func Success(c *fiber.Ctx, statusCode int, message string) error {
@@ -42,7 +41,6 @@ func SuccessWithPagination(c *fiber.Ctx, statusCode int, message string, data in
 
 // ====================================================================
 // Error Responses
-// ====================================================================
 
 // BadRequest mengembalikan error 400 Bad Request
 func BadRequest(c *fiber.Ctx, message string, err interface{}) error {

@@ -4,9 +4,10 @@ package constants
 type SubPlaceType string
 
 const (
-	Pond        SubPlaceType = "pond"
-	PlantBed    SubPlaceType = "plant_bed"
-	Greenhouse  SubPlaceType = "greenhouse"
+	Pond       SubPlaceType = "pond"
+	PlantBed   SubPlaceType = "plant_bed"
+	Greenhouse SubPlaceType = "greenhouse"
+	Hydroponic SubPlaceType = "hydroponic"
 )
 
 // SubPlaceStatus merepresentasikan status operasional sub_place
