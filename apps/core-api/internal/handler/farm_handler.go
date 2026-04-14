@@ -120,9 +120,11 @@ func (h *FarmHandler) DeleteFarm(c *fiber.Ctx) error {
 
 // GetAllFarms godoc
 // @Summary Get all farms
-// @Description Mengambil semua data user
+// @Description Mengambil semua data farm dengan pagination
 // @Tags Farms
 // @Produce json
+// @Param page query int false "Page number" default(1)
+// @Param limit query int false "Items per page" default(10)
 // @Success 200 {object} map[string]interface{}
 // @Failure 500 {object} map[string]string
 // @Router /farms [get]

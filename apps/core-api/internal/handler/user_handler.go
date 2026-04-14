@@ -139,9 +139,11 @@ func (h *UserHandler) DeleteUser(c *fiber.Ctx) error {
 
 // GetAllUsers godoc
 // @Summary Get all users
-// @Description Mengambil semua data user
+// @Description Mengambil semua data user dengan pagination
 // @Tags Users
 // @Produce json
+// @Param page query int false "Page number" default(1)
+// @Param limit query int false "Items per page" default(10)
 // @Success 200 {object} map[string]interface{}
 // @Failure 500 {object} map[string]string
 // @Router /users [get]
