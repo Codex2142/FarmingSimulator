@@ -42,5 +42,5 @@ apps/core-api/
 
 # Swagger
 ```sh
-C:\Users\sadat\go\bin\swag init -g cmd/server/main.go
+swag init -g cmd/server/main.go
 ```
